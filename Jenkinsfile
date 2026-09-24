@@ -4,6 +4,12 @@ pipeline {
     tools{
       nodejs 'frontend'
     }
+    
+    environment {
+      AWS_DEFAULT_REGION = 'us-east-1'
+      
+      S3_BUCKET = 'frontend'
+      }
  
     stages {
     
@@ -11,7 +17,7 @@ pipeline {
             steps {
                 git branch: 'main',
                     credentialsId: 'git-creds',
-                    url: 'https://github.com/Deepan0808/full-deployment.git'
+                    url: 'https://github.com/Deepan0808/dev-flow.git'
           }
         }
         
@@ -21,8 +27,7 @@ pipeline {
               }
          }
          
-             
-        stage('Sonarqube Analysis') {
+         stage('Sonarqube Analysis') {
             steps {
                 script {
                     def scannerhome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
@@ -31,13 +36,12 @@ pipeline {
                     sh """
                             ${scannerhome}/bin/sonar-scanner \
                             -Dsonar.projectKey=frontend \
-                            -Dsonar.sources=frontend\
+                            -Dsonar.sources=frontend \
                             -Dsonar.host.url=http://localhost:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
-                       """
+                            """
                     }
                } 
          }
     }
-}        
-       
+}
