@@ -23,9 +23,12 @@ pipeline {
         
         stage('Install') {
             steps {
-                sh 'npm install'
-              }
-         }
+                dir('frontend') {
+                    sh 'npm ci'
+                }
+            }
+        }
+ 
          
          stage('Sonarqube Analysis') {
             steps {
@@ -44,5 +47,7 @@ pipeline {
                } 
          }
     }
+ }       
+       
 }
 }
