@@ -28,6 +28,14 @@ pipeline {
                 }
             }
         }
+        
+        stage('build') {
+            steps {
+                dir('frontend') {
+                    sh 'npm run build'
+                 }
+             }
+        }
  
          
          stage('Sonarqube Analysis') {
@@ -48,4 +56,4 @@ pipeline {
          }
     }
  }       
-}
+       
