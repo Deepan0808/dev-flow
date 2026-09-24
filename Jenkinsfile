@@ -42,7 +42,8 @@ pipeline {
             steps {
                 script {
                     def scannerhome = tool name: 'SonarQube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    
+                
+             withSonarQubeEnv('SonarQube') {   
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
                             ${scannerhome}/bin/sonar-scanner \
@@ -51,6 +52,7 @@ pipeline {
                             -Dsonar.host.url=http://localhost:9000 \
                             -Dsonar.login=${SONAR_TOKEN}
                             """
+                         }
                     }
                } 
          }
@@ -58,9 +60,7 @@ pipeline {
     
        stage('Quality Gate') {
             steps {
- 
                 timeout(time: 5, unit: 'MINUTES') {
- 
                     waitForQualityGate abortPipeline: true
  
                 }
