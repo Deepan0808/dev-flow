@@ -6,9 +6,10 @@ pipeline {
     }
     
     environment {
-      AWS_DEFAULT_REGION = 'us-east-1'
-      
-      S3_BUCKET = 'frontend'
+      AWS_DEFAULT_REGION = 'us-east-2'
+      S3_BUCKET = 'deploy-dpan'
+      CLOUDFRONT_DIST_ID= 'E3IVNN8OTX80H7'
+      AWS_CREDENTIALS= credentials('aws-id')
       }
  
     stages {
@@ -46,7 +47,7 @@ pipeline {
              withSonarQubeEnv('SonarQube') {   
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
-                            ${scannerHome}/bin/sonar-scanner \
+                            ${scannerhome}/bin/sonar-scanner \
                             -Dsonar.projectKey=frontend \
                             -Dsonar.sources=frontend\
                             -Dsonar.host.url=http://localhost:9000 \
@@ -68,6 +69,30 @@ pipeline {
                 }
             }
         }
+        
+      stage('Deploy S3 Bucket'){
+           steps{
+               echo 'updating S3 Bucket'
+               sh ''' 
+               aws s3 sync frontend/dist/ \
+               s3://${S3_BUCKET}/ \
+               --delete \
+               --region us-east-2
+               '''
+               echo 'Frontend Uploaded Successfully'
+       }      
+     }
+     
+     stage('Cloudfront Deployment'){
+          steps{
+              echo 'Deploying...'
+              sh ''' 
+              aws cloudfront create-invalidation \
+              --distribution-id ${CLOUDFRONT_DIST_ID} \
+              --paths "/*"
+              '''
+           }
+       }
      }
  }       
        
