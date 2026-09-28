@@ -47,7 +47,7 @@ pipeline {
              withSonarQubeEnv('SonarQube') {   
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
-                            ${scannerHome}/bin/sonar-scanner \
+                            ${scannerhome}/bin/sonar-scanner \
                             -Dsonar.projectKey=frontend \
                             -Dsonar.sources=frontend\
                             -Dsonar.host.url=http://localhost:9000 \
@@ -93,6 +93,15 @@ pipeline {
               '''
            }
        }
+       
+     stage('Build Docker Images'){
+         steps{
+             echo "Building Images"
+             sh '''
+             docker compose up -d
+             '''
+           }
+        }
      }
  }       
        
