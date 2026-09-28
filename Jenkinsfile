@@ -98,6 +98,7 @@ pipeline {
          steps{
              echo "Building Images"
              sh '''
+             docker compose down
              docker compose up -d
              '''
            }
