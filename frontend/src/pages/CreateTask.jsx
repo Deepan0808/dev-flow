@@ -25,7 +25,7 @@ export default function CreateTask() {
     e.preventDefault();
 
     try {
-      await api.post("/api/tasks/create", task);
+      await api.post("/tasks/create", task);
 
       alert("Task Created Successfully");
       navigate("/dashboard");
