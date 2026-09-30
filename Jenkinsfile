@@ -33,7 +33,11 @@ pipeline {
         stage('build') {
             steps {
                 dir('frontend') {
-                    sh 'npm run build'
+                    sh '''
+                      echo "VITE_API_URL=https://d3bngwckmcd8r2.cloudfront.net/api" > .env
+                      cat .env
+                      npm run build
+                     '''
                  }
              }
         }
