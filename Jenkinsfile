@@ -7,7 +7,6 @@ pipeline {
     
     environment {
       AWS_DEFAULT_REGION = 'us-east-2'
-      S3_BUCKET = 'deploy-dpan'
       CLOUDFRONT_DIST_ID= 'E3IVNN8OTX80H7'
       AWS_CREDENTIALS= credentials('aws-id')
       }
@@ -33,11 +32,7 @@ pipeline {
         stage('build') {
             steps {
                 dir('frontend') {
-                    sh '''
-                      echo "VITE_API_URL=https://d3bngwckmcd8r2.cloudfront.net/api" > .env
-                      cat .env
-                      npm run build
-                     '''
+                    sh 'npm run build'
                  }
              }
         }
@@ -51,7 +46,7 @@ pipeline {
              withSonarQubeEnv('SonarQube') {   
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
-                            ${scannerHome}/bin/sonar-scanner \
+                            ${scannerhome}/bin/sonar-scanner \
                             -Dsonar.projectKey=frontend \
                             -Dsonar.sources=frontend\
                             -Dsonar.host.url=http://localhost:9000 \
@@ -60,6 +55,47 @@ pipeline {
                          }
                     }
                } 
+         }
+    }
+    
+       stage('Quality Gate') {
+            steps {
+            
+                timeout(time: 5, unit: 'MINUTES') {
+                
+                    waitForQualityGate abortPipeline: true
+ 
+                }
+            }
+        }
+        
+      stage('using Terraform'){
+            steps{
+              echo 'Creating AWS Service by Terraform'
+               sh '''
+                cd terraform
+                terraform init
+                terraform plan
+                terraform apply -auto-approve
+              '''
+             echo 'Successfully Aws Services Created'
+        }
+    }
+    
+      
+      stage('Terraform Outputs'){
+           steps{
+              echo 'Mentioning terrafrom Variables...'
+               sh 'cd terraform'
+                script {
+                env.S3_BUCKET= sh(
+                script: "terraform output -raw s3_bucket_name", 
+                returnStdout: true
+                ).trim()
+          }
+              sh '''
+                 echo "S3_BUCKET= ${env.S3_BUCKET}"
+              '''
          }
     }
         
@@ -91,7 +127,6 @@ pipeline {
          steps{
              echo "Building Images"
              sh '''
-             docker compose down
              docker compose up -d
              '''
            }
