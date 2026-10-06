@@ -7,6 +7,7 @@ pipeline {
     
     environment {
       AWS_DEFAULT_REGION = 'us-east-2'
+      S3_BUCKET = 'deploy-dpan'
       CLOUDFRONT_DIST_ID= 'E3IVNN8OTX80H7'
       AWS_CREDENTIALS= credentials('aws-id')
       }
@@ -69,37 +70,7 @@ pipeline {
             }
         }
         
-      stage('using Terraform'){
-            steps{
-              echo 'Creating AWS Service by Terraform'
-               sh '''
-                cd terraform
-                terraform init
-                terraform plan
-                terraform apply -auto-approve
-              '''
-             echo 'Successfully Aws Services Created'
-        }
-    }
-    
-      
-      stage('Terraform Outputs'){
-           steps{
-              echo 'Mentioning terrafrom Variables...'
-               sh 'cd terraform'
-                script {
-                env.S3_BUCKET= sh(
-                script: "terraform output -raw s3_bucket_name", 
-                returnStdout: true
-                ).trim()
-          }
-              sh '''
-                 echo "S3_BUCKET= ${env.S3_BUCKET}"
-              '''
-         }
-    }
-        
-      stage('Deploy S3 Bucket'){
+       stage('Deploy S3 Bucket'){
            steps{
                echo 'updating S3 Bucket'
                sh ''' 
